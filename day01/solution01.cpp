@@ -1,7 +1,8 @@
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
+
+#include "utils.h"
 
 
 int required_fuel(int mass) {
@@ -10,16 +11,7 @@ int required_fuel(int mass) {
 
 
 int main(int argc, char **argv) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " input.txt" << std::endl;
-        return 1;
-    }
-
-    std::ifstream input_stream(argv[1]);
-    if (!input_stream) {
-        std::cerr << "File not found: " << argv[1] << std::endl;
-        return 2;
-    }
+    auto input_stream = open_input_file(argc, argv);
 
     std::string line;
     int module_fuel_cost = 0;

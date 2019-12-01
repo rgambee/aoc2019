@@ -9,6 +9,9 @@ then
     exit 1
 fi
 
+cd "$(dirname "${BASH_SOURCE[0]}")"
+
 DAY="$(printf "%02d" "$1")"
-g++ -std=c++17 "./day$DAY/solution$DAY.cpp" -o "./day$DAY/solution$DAY.exe"
+g++ -std=c++17 -o "./day$DAY/solution$DAY.exe" -I "./utils/" \
+    "./day$DAY/solution$DAY.cpp" "./utils/utils.cpp"
 "./day$DAY/solution$DAY.exe" "./day$DAY/input$DAY.txt"
