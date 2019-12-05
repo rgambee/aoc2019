@@ -3,6 +3,7 @@
 #include <climits>
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -13,8 +14,44 @@
 using coord_type = std::array<int, 2>;
 
 
-std::vector<coord_type> find_wire_coords(const std::string &path) {
-    std::vector<coord_type> wire_coords{coord_type{0, 0}};
+class Node {
+public:
+    Node(int ord): order(ord) {}
+    Node(int ord, coord_type crd): order(ord), coords(crd) {}
+
+    void add_neighbor(std::shared_ptr<Node> neigh) {
+        // Only adds one-way link.
+        // Caller should add link in other direction if desired.
+        neighbors.push_back(neigh);
+    }
+
+    std::shared_ptr<Node> get_next_node() {
+        for (auto neigh: neighbors) {
+            if (neigh->order == order + 1) {
+                return neigh;
+            }
+        }
+        return nullptr;
+    }
+
+    std::shared_ptr<Node> get_prev_node() {
+        for (auto neigh: neighbors) {
+            if (neigh->order == order - 1) {
+                return neigh;
+            }
+        }
+        return nullptr;
+    }
+
+    int order = -1;
+    coord_type coords;
+    std::vector<std::shared_ptr<Node> > neighbors;
+};
+
+
+std::shared_ptr<Node> construct_wire(const std::string &path) {
+    auto origin = std::make_shared<Node>(0);
+    auto current_node = origin;
     std::string segment;
     std::istringstream path_stream{path};
     while (std::getline(path_stream, segment, ',')) {
@@ -34,9 +71,11 @@ std::vector<coord_type> find_wire_coords(const std::string &path) {
             std::cerr << "Unknown direction: " << dir << std::endl;
             exit(3);
         }
-        wire_coords.push_back(new_coord);
+        auto new_node = std::make_shared<Node>(current_node->order + 1, new_coord);
+        current_node->add_neighbor(new_node);
+        new_node->add_neighbor(current_node);
     }
-    return wire_coords;
+    return origin;
 }
 
 
@@ -86,8 +125,10 @@ int main(int argc, char **argv) {
     std::string line1, line2;
     std::getline(input_stream, line1);
     std::getline(input_stream, line2);
-    auto wire_coords1 = find_wire_coords(line1);
-    auto wire_coords2 = find_wire_coords(line2);
+    auto wire1 = construct_wire(line1);
+    auto wire2 = construct_wire(line2);
+
+    // Find self-intersections and add to list of nodes
 
     auto shortest_dist = INT_MAX, fewest_steps = INT_MAX;
     auto steps1 = 0;
