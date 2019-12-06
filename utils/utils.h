@@ -13,6 +13,6 @@ enum class Opcode {
 
 Opcode int_to_opcode(int integer);
 
-std::vector<unsigned int> load_intcode_program(std::istream &input_stream);
+std::vector<int> load_intcode_program(std::istream &input_stream);
 
-unsigned int run_intcode_program(std::vector<unsigned int> numbers);
+int run_intcode_program(std::vector<int> numbers);

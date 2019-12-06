@@ -35,8 +35,8 @@ Opcode int_to_opcode(int integer) {
 }
 
 
-std::vector<unsigned int> load_intcode_program(std::istream &input_stream) {
-    std::vector<unsigned int> numbers;
+std::vector<int> load_intcode_program(std::istream &input_stream) {
+    std::vector<int> numbers;
     std::string num_str;
     while (std::getline(input_stream, num_str, ',')) {
         numbers.push_back(std::stoi(num_str));
@@ -45,7 +45,7 @@ std::vector<unsigned int> load_intcode_program(std::istream &input_stream) {
 }
 
 
-unsigned int run_intcode_program(std::vector<unsigned int> numbers) {
+int run_intcode_program(std::vector<int> numbers) {
     for (std::vector<int>::size_type i = 0; i < numbers.size() - 4; i += 4) {
         auto opcode = int_to_opcode(numbers[i]);
         switch (opcode) {
@@ -59,8 +59,9 @@ unsigned int run_intcode_program(std::vector<unsigned int> numbers) {
                 auto input_index_a = numbers[i+1];
                 auto input_index_b = numbers[i+2];
                 auto output_index = numbers[i+3];
-                if (numbers.size() < input_index_a || numbers.size() < input_index_b
-                    || numbers.size() < output_index) {
+                if (   input_index_a < 0 || int(numbers.size()) < input_index_a
+                    || input_index_b < 0 || int(numbers.size()) < input_index_b
+                    || output_index  < 0 || int(numbers.size()) < output_index) {
                     std::cerr << "Index out of range" << std::endl;
                     exit(4);
                 }

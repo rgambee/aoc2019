@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     // For part 2, loop over all possible nouns and verbs
     // until the desired output is found
     auto part_2_result = -1;
-    unsigned int desired_output = 19690720;
+    auto desired_output = 19690720;
     for (auto noun = 0; noun < 100; ++noun) {
         for (auto verb = 0; verb < 100; ++verb) {
             numbers[1] = noun;
