@@ -5,39 +5,6 @@
 #include "utils.h"
 
 
-auto run_program(std::vector<unsigned int> numbers) {
-    for (std::vector<int>::size_type i = 0; i < numbers.size() - 4; i += 4) {
-        auto opcode = numbers[i];
-        if (opcode == 99) {
-            // Done
-            break;
-        } else if (opcode != 1 && opcode != 2 ) {
-            std::cerr << "Unknown opcode: " << opcode << std::endl;
-            exit(3);
-        }
-        auto input_index_a = numbers[i+1];
-        auto input_index_b = numbers[i+2];
-        auto output_index = numbers[i+3];
-        if (numbers.size() < input_index_a || numbers.size() < input_index_b
-            || numbers.size() < output_index) {
-            std::cerr << "Index out of range" << std::endl;
-            exit(4);
-        }
-
-        int result = -1;
-        if (opcode == 1) {
-            // Addition
-            result = numbers[input_index_a] + numbers[input_index_b];
-        } else if (opcode == 2) {
-            // Multiplication
-            result = numbers[input_index_a] * numbers[input_index_b];
-        }
-        numbers[output_index] = result;
-    }
-    return numbers[0];
-}
-
-
 int main(int argc, char **argv) {
     auto input_stream = open_input_file(argc, argv);
 
@@ -50,7 +17,7 @@ int main(int argc, char **argv) {
     // For part 1, set noun to 12 and verb to 2
     numbers[1] = 12;
     numbers[2] = 2;
-    auto part_1_result = run_program(numbers);
+    auto part_1_result = run_intcode_program(numbers);
 
     // For part 2, loop over all possible nouns and verbs
     // until the desired output is found
@@ -60,7 +27,7 @@ int main(int argc, char **argv) {
         for (auto verb = 0; verb < 100; ++verb) {
             numbers[1] = noun;
             numbers[2] = verb;
-            if (run_program(numbers) == desired_output) {
+            if (run_intcode_program(numbers) == desired_output) {
                 part_2_result = 100 * noun + verb;
                 break;
             }
