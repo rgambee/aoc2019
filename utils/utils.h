@@ -6,7 +6,6 @@
 
 std::ifstream open_input_file(int argc, char **argv);
 
-
 enum class Opcode {
     ADD = 1,
     MULTIPLY = 2,
@@ -16,6 +15,13 @@ enum class Opcode {
 };
 
 Opcode int_to_opcode(int integer);
+
+enum class Mode {
+    POSITIONAL = 0,
+    IMMEDIATE = 1
+};
+
+std::vector<Mode> int_to_modes(int integer, int num_operands);
 
 std::vector<int> load_intcode_program(std::istream &input_stream);
 

@@ -1,3 +1,4 @@
+#include <cmath>
 #include <string>
 
 #include "utils.h"
@@ -20,7 +21,7 @@ std::ifstream open_input_file(int argc, char **argv) {
 
 
 Opcode int_to_opcode(int integer) {
-    switch(integer) {
+    switch(integer % 100) {
         case 1:
             return Opcode::ADD;
         case 2:
@@ -34,6 +35,27 @@ Opcode int_to_opcode(int integer) {
 }
 
 
+std::vector<Mode> int_to_modes(int integer, int num_operands) {
+    std::vector<Mode> result(num_operands, Mode::POSITIONAL);
+    integer /= 100;     // Remove opcode (trailing two digits)
+    for (auto place = 0; place < num_operands; place++) {
+        int digit = (integer / int(std::round(std::pow(10, place)))) % 10;
+        switch(digit) {
+            case 0:
+                result[place] = Mode::POSITIONAL;
+                break;
+            case 1:
+                result[place] = Mode::IMMEDIATE;
+                break;
+            default:
+                std::cerr << "Unknown mode: " << digit;
+                exit(3);
+        }
+    }
+    return result;
+}
+
+
 std::vector<int> load_intcode_program(std::istream &input_stream) {
     std::vector<int> numbers;
     std::string num_str;
@@ -41,6 +63,14 @@ std::vector<int> load_intcode_program(std::istream &input_stream) {
         numbers.push_back(std::stoi(num_str));
     }
     return numbers;
+}
+
+
+void check_index(int index, const std::vector<int> &numbers) {
+    if (index < 0 || int(numbers.size()) <= index) {
+        std::cerr << "Index out of range: " << index << std::endl;
+        exit(4);
+    }
 }
 
 
@@ -55,11 +85,15 @@ int run_intcode_program(std::vector<int> numbers,
                 break;
             case Opcode::INPUT:
             case Opcode::OUTPUT: {
-                auto index = numbers[i+1];
-                if (index < 0 || int(numbers.size()) <= index) {
-                    std::cerr << "Index out of range" << std::endl;
-                    exit(4);
+                int num_operands = 1;
+                auto modes = int_to_modes(numbers[i], num_operands);
+                if (modes[0] != Mode::POSITIONAL) {
+                    std::cerr << "Opcode " << int(opcode);
+                    std::cerr << " expects positional operand mode" << std::endl;
+                    exit(3);
                 }
+                auto index = numbers[i+1];
+                check_index(index, numbers);
                 switch (opcode) {
                     case Opcode::INPUT:
                         input >> numbers[index];
@@ -71,35 +105,59 @@ int run_intcode_program(std::vector<int> numbers,
                         std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
                         exit(3);
                 }
-                i += 2;
+                i += num_operands + 1;
                 break;
             }
             case Opcode::ADD:
             case Opcode::MULTIPLY: {
-                // 3 operands
-                auto input_index_a = numbers[i+1];
-                auto input_index_b = numbers[i+2];
-                auto output_index = numbers[i+3];
-                if (   input_index_a < 0 || int(numbers.size()) <= input_index_a
-                    || input_index_b < 0 || int(numbers.size()) <= input_index_b
-                    || output_index  < 0 || int(numbers.size()) <= output_index) {
-                    std::cerr << "Index out of range" << std::endl;
-                    exit(4);
+                int num_operands = 3;
+                auto modes = int_to_modes(numbers[i], num_operands);
+                int input_a = -1, input_b = -1;
+                switch (modes[0]) {
+                    case Mode::POSITIONAL:
+                        check_index(numbers[i+1], numbers);
+                        input_a = numbers[numbers[i+1]];
+                        break;
+                    case Mode::IMMEDIATE:
+                        input_a = numbers[i+1];
+                        break;
+                    default:
+                        std::cerr << "Unexpected mode: " << int(modes[0]) << std::endl;
+                        exit(3);
                 }
+                switch (modes[1]) {
+                    case Mode::POSITIONAL:
+                        check_index(numbers[i+2], numbers);
+                        input_b = numbers[numbers[i+2]];
+                        break;
+                    case Mode::IMMEDIATE:
+                        input_b = numbers[i+2];
+                        break;
+                    default:
+                        std::cerr << "Unexpected mode: " << int(modes[1]) << std::endl;
+                        exit(3);
+                }
+                if (modes[2] != Mode::POSITIONAL) {
+                    std::cerr << "Opcode " << int(opcode);
+                    std::cerr << " expects positional mode for final operand" << std::endl;
+                    exit(3);
+                }
+                auto output_index = numbers[i+3];
+                check_index(output_index, numbers);
                 int result = -1;
                 switch (opcode) {
                     case Opcode::ADD:
-                        result = numbers[input_index_a] + numbers[input_index_b];
+                        result = input_a + input_b;
                         break;
                     case Opcode::MULTIPLY:
-                        result = numbers[input_index_a] * numbers[input_index_b];
+                        result = input_a * input_b;
                         break;
                     default:
                         std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
                         exit(3);
                 }
                 numbers[output_index] = result;
-                i += 4;
+                i += num_operands + 1;
                 break;
             }
             default:
