@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "utils.h"
 
@@ -16,6 +17,16 @@ std::ifstream open_input_file(int argc, char **argv) {
     }
 
     return input_stream;
+}
+
+
+std::vector<unsigned int> load_intcode_program(std::istream &input_stream) {
+    std::vector<unsigned int> numbers;
+    std::string num_str;
+    while (std::getline(input_stream, num_str, ',')) {
+        numbers.push_back(std::stoi(num_str));
+    }
+    return numbers;
 }
 
 

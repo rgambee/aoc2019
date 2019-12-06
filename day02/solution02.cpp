@@ -1,18 +1,11 @@
 #include <iostream>
-#include <string>
-#include <vector>
 
 #include "utils.h"
 
 
 int main(int argc, char **argv) {
     auto input_stream = open_input_file(argc, argv);
-
-    std::vector<unsigned int> numbers;
-    std::string num_str;
-    while (std::getline(input_stream, num_str, ',')) {
-        numbers.push_back(std::stoi(num_str));
-    }
+    auto numbers = load_intcode_program(input_stream);
 
     // For part 1, set noun to 12 and verb to 2
     numbers[1] = 12;
