@@ -45,16 +45,38 @@ std::vector<int> load_intcode_program(std::istream &input_stream) {
 }
 
 
-int run_intcode_program(std::vector<int> numbers) {
-    for (std::vector<int>::size_type i = 0; i < numbers.size() - 4; i += 4) {
+int run_intcode_program(std::vector<int> numbers,
+                        std::istream &input,
+                        std::ostream &output) {
+    for (std::vector<int>::size_type i = 0; i < numbers.size();) {
         auto opcode = int_to_opcode(numbers[i]);
         switch (opcode) {
             case Opcode::END:
                 i = numbers.size();
                 break;
+            case Opcode::INPUT:
+            case Opcode::OUTPUT: {
+                auto index = numbers[i+1];
+                if (index < 0 || int(numbers.size()) <= index) {
+                    std::cerr << "Index out of range" << std::endl;
+                    exit(4);
+                }
+                switch (opcode) {
+                    case Opcode::INPUT:
+                        input >> numbers[index];
+                        break;
+                    case Opcode::OUTPUT:
+                        output << numbers[index];
+                        break;
+                    default:
+                        std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
+                        exit(3);
+                }
+                i += 2;
+                break;
+            }
             case Opcode::ADD:
-            case Opcode::MULTIPLY:
-            {
+            case Opcode::MULTIPLY: {
                 // 3 operands
                 auto input_index_a = numbers[i+1];
                 auto input_index_b = numbers[i+2];
@@ -78,6 +100,7 @@ int run_intcode_program(std::vector<int> numbers) {
                         exit(3);
                 }
                 numbers[output_index] = result;
+                i += 4;
                 break;
             }
             default:
