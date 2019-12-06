@@ -59,9 +59,9 @@ int run_intcode_program(std::vector<int> numbers) {
                 auto input_index_a = numbers[i+1];
                 auto input_index_b = numbers[i+2];
                 auto output_index = numbers[i+3];
-                if (   input_index_a < 0 || int(numbers.size()) < input_index_a
-                    || input_index_b < 0 || int(numbers.size()) < input_index_b
-                    || output_index  < 0 || int(numbers.size()) < output_index) {
+                if (   input_index_a < 0 || int(numbers.size()) <= input_index_a
+                    || input_index_b < 0 || int(numbers.size()) <= input_index_b
+                    || output_index  < 0 || int(numbers.size()) <= output_index) {
                     std::cerr << "Index out of range" << std::endl;
                     exit(4);
                 }
