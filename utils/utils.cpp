@@ -91,19 +91,31 @@ int run_intcode_program(std::vector<int> numbers,
             case Opcode::OUTPUT: {
                 int num_operands = 1;
                 auto modes = int_to_modes(numbers[i], num_operands);
-                if (modes[0] != Mode::POSITIONAL) {
+                if (opcode == Opcode::INPUT && modes[0] != Mode::POSITIONAL) {
                     std::cerr << "Opcode " << int(opcode);
                     std::cerr << " expects positional operand mode" << std::endl;
                     exit(3);
                 }
-                auto index = numbers[i+1];
-                check_index(index, numbers);
+                auto parameter = numbers[i+1];
+                if (modes[0] == Mode::POSITIONAL) {
+                    check_index(parameter, numbers);
+                }
                 switch (opcode) {
                     case Opcode::INPUT:
-                        input >> numbers[index];
+                        input >> numbers[parameter];
                         break;
                     case Opcode::OUTPUT:
-                        output << numbers[index];
+                        switch (modes[0]) {
+                            case Mode::POSITIONAL:
+                                output << numbers[parameter];
+                                break;
+                            case Mode::IMMEDIATE:
+                                output << parameter;
+                                break;
+                            default:
+                                std::cerr << "Unexpected mode: " << int(modes[0]) << std::endl;
+                                exit(3);
+                        }
                         break;
                     default:
                         std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
