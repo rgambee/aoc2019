@@ -26,6 +26,10 @@ Opcode int_to_opcode(int integer) {
             return Opcode::ADD;
         case 2:
             return Opcode::MULTIPLY;
+        case 3:
+            return Opcode::INPUT;
+        case 4:
+            return Opcode::OUTPUT;
         case 99:
             return Opcode::END;
         default:
