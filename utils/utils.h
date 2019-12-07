@@ -11,6 +11,10 @@ enum class Opcode {
     MULTIPLY = 2,
     INPUT = 3,
     OUTPUT = 4,
+    JUMP_TRUE = 5,
+    JUMP_FALSE = 6,
+    LESS_THAN = 7,
+    EQUALS = 8,
     END = 99
 };
 

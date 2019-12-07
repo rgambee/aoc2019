@@ -21,6 +21,8 @@ std::ifstream open_input_file(int argc, char **argv) {
 
 
 Opcode int_to_opcode(int integer) {
+    // Could simply cast to an Opcode,
+    // but that wouldn't reject unknown inputs.
     switch(integer % 100) {
         case 1:
             return Opcode::ADD;
@@ -30,6 +32,14 @@ Opcode int_to_opcode(int integer) {
             return Opcode::INPUT;
         case 4:
             return Opcode::OUTPUT;
+        case 5:
+            return Opcode::JUMP_TRUE;
+        case 6:
+            return Opcode::JUMP_FALSE;
+        case 7:
+            return Opcode::LESS_THAN;
+        case 8:
+            return Opcode::EQUALS;
         case 99:
             return Opcode::END;
         default:
@@ -124,8 +134,52 @@ int run_intcode_program(std::vector<int> numbers,
                 i += num_operands + 1;
                 break;
             }
+            case Opcode::JUMP_TRUE:
+            case Opcode::JUMP_FALSE: {
+                int num_operands = 2;
+                auto modes = int_to_modes(numbers[i], num_operands);
+                int condition = -1, destination = -1;
+                switch (modes[0]) {
+                    case Mode::POSITIONAL:
+                        check_index(numbers[i+1], numbers);
+                        condition = numbers[numbers[i+1]];
+                        break;
+                    case Mode::IMMEDIATE:
+                        condition = numbers[i+1];
+                        break;
+                    default:
+                        std::cerr << "Unexpected mode: " << int(modes[0]) << std::endl;
+                        exit(3);
+                }
+                switch (modes[1]) {
+                    case Mode::POSITIONAL:
+                        check_index(numbers[i+2], numbers);
+                        destination = numbers[numbers[i+2]];
+                        break;
+                    case Mode::IMMEDIATE:
+                        destination = numbers[i+2];
+                        break;
+                    default:
+                        std::cerr << "Unexpected mode: " << int(modes[1]) << std::endl;
+                        exit(3);
+                }
+                switch (opcode) {
+                    case Opcode::JUMP_TRUE:
+                        i = condition ? destination : i + num_operands + 1;
+                        break;
+                    case Opcode::JUMP_FALSE:
+                        i = !condition ? destination : i + num_operands + 1;
+                        break;
+                    default:
+                        std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
+                        exit(3);
+                }
+                break;
+            }
             case Opcode::ADD:
-            case Opcode::MULTIPLY: {
+            case Opcode::MULTIPLY:
+            case Opcode::LESS_THAN:
+            case Opcode::EQUALS: {
                 int num_operands = 3;
                 auto modes = int_to_modes(numbers[i], num_operands);
                 int input_a = -1, input_b = -1;
@@ -167,6 +221,12 @@ int run_intcode_program(std::vector<int> numbers,
                         break;
                     case Opcode::MULTIPLY:
                         result = input_a * input_b;
+                        break;
+                    case Opcode::LESS_THAN:
+                        result = input_a < input_b ? 1 : 0;
+                        break;
+                    case Opcode::EQUALS:
+                        result = input_a == input_b ? 1 : 0;
                         break;
                     default:
                         std::cerr << "Unexpected opcode: " << int(opcode) << std::endl;
